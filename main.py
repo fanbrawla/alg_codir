@@ -1,3 +1,24 @@
+class tree:
+    def __init__(self, data = None, name = None):
+        self.name = name
+        self.left = None
+        self.right = None
+        self.data = data
+    
+    def add(self, tr):
+        new = tree()
+        new.left = self
+        new.right = tr
+        return new
+
+    def PrintTree(self):
+        print(self.data)
+        if self.left:
+            self.left.PrintTree()
+        if self.right:
+            self.right.PrintTree()
+
+
 def sort(count):
     for i in range(len(count)-1):
         for j in range(len(count)-1):
@@ -26,7 +47,11 @@ def ini():
 def main():
     count = ini()
     sort(count)
-    print(count)
+    haf = tree(count[len(count)-1][1], count[len(count)-1][0])
+    tr = tree(2, "r")
+    a = haf.add(tr)
+    a.PrintTree()
+
 
 if __name__ == "__main__":
     	main()
