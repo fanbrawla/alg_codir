@@ -4,7 +4,8 @@ class tree:
         self.left = None
         self.right = None
         self.data = data
-    
+        self.num = None
+
     def add(self, tr):
         new = tree()
         new.left = self
@@ -12,12 +13,10 @@ class tree:
         return new
 
     def PrintTree(self):
-        print(self.data, self.name)
+        print(self.data, self.name, self.num)
         if self.left:
-            print("l")
             self.left.PrintTree()
         if self.right:
-            print("r")
             self.right.PrintTree()
 
     def Cost(self, cost = 0):
@@ -27,6 +26,18 @@ class tree:
         if self.right:
             cost = self.right.Cost(cost)
         return cost
+    
+    def Num(self, num = ""):
+        self.num = num
+        if self.left:
+            #num0 = (num << 1)
+            num0 = num+"0"
+            self.left.Num(num0)
+        if self.right:
+            #num1 = (num << 1) | 1 
+            num1 = num+"1"
+            self.right.Num(num1)
+
 
 def sort(count):
     for i in range(len(count)-1):
@@ -84,13 +95,13 @@ def MasToTree(count):
 
 def main():
     count = ini()
-    sort(count)
     print(count)
     tre = MasToTree(count)
     print(f"len = {len(tre)}")
-    for i in range(len(tre)):
-        tre[i].PrintTree()
-        print(f"i = {i}")
+    tre = tre[0]
+    tre.Num()
+    tre.PrintTree()
+    
 
 if __name__ == "__main__":
     	main()
