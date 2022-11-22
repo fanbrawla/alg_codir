@@ -4,7 +4,8 @@ class tree:
         self.left = None
         self.right = None
         self.data = data
-        self.num = None
+        self.code = None
+        self.potomok = None
 
     def add(self, tr):
         new = tree()
@@ -13,7 +14,11 @@ class tree:
         return new
 
     def PrintTree(self):
-        print(self.data, self.name, self.num)
+        if self.code is None:
+            print(self.data, self.name, self.code, self.potomok)
+        else:
+            #self.code = bin(self.code).replace("0b", "").zfill(self.potomok)
+            print(self.data, self.name, self.code, self.potomok)
         if self.left:
             self.left.PrintTree()
         if self.right:
@@ -27,26 +32,36 @@ class tree:
             cost = self.right.Cost(cost)
         return cost
     
-    def Num(self, num = ""):
-        self.num = num
+    def Num(self, code = 1, potomok = 1):
+        self.code = bin(code).replace("0b", "").zfill(potomok)
+        self.potomok = potomok
+        potomok += 1
         if self.left:
-            #num0 = (num << 1)
-            num0 = num+"0"
-            self.left.Num(num0)
+            code0 = code << 1
+            self.left.Num(code0, potomok)
         if self.right:
-            #num1 = (num << 1) | 1 
-            num1 = num+"1"
-            self.right.Num(num1)
+            code1 = (code << 1) | 1
+            self.right.Num(code1, potomok)
 
+    def find(self, char, code = None):
+        if char == self.name:
+            code = self.code
+        if code is None:
+            if (self.left):
+                code = self.left.find(char)
+        if code is None:
+            if (self.right):
+                code = self.right.find(char)
+        return code
 
-def sort(count):
-    for i in range(len(count)-1):
-        for j in range(len(count)-1):
-            if count[j][1] < count[j+1][1]:
-                temp = count[j+1]
-                count[j+1] = count[j]
-                count[j] = temp
-    return count
+    def encode(self):
+        filep = open("text.txt", "r")
+        plain = filep.read()
+        code = []
+        for i in plain[:-1]:
+            code.append(self.find(i))
+        print(code)
+
 
 def ini():
     file = open("text.txt", "r")
@@ -57,11 +72,11 @@ def ini():
     for i in f:
         number[ord(i)][1] += 1
     j = 0
+    number[ord("\n")][1]-=1
     count = []
     for i in range(0, 256):
         if number[i][1] != 0:
             count.append(number[i])
-    sort(count)
     return(count)
 
 def MasToTree(count):
@@ -99,7 +114,9 @@ def main():
     tre = MasToTree(count)
     print(f"len = {len(tre)}")
     tre = tre[0]
-    tre.Num()
+    tre.left.Num(0)
+    tre.right.Num(1)
+    tre.encode()
     tre.PrintTree()
     
 
