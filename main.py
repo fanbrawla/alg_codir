@@ -57,11 +57,27 @@ class tree:
     def encode(self):
         filep = open("text.txt", "r")
         plain = filep.read()
-        code = []
-        for i in plain[:-1]:
-            code.append(self.find(i))
-        print(code)
-
+        plain = list(plain)
+        del plain[len(plain)-1]
+        for i in range(len(plain)):
+            code = self.find(plain[i])
+            plain[i] = code
+        plain = ''.join(plain)
+        n = len(plain)
+        pad = (8-n)%8
+        pad = "0"*pad
+        plain = pad+plain
+        filect = open("encoded", "wb")
+        for i in range(int(len(plain)/8)):
+            a = plain[i*8:i*8+8]
+            vec = int(a[0])
+            a = a[1:]
+            for j in a:
+                if j == '0':
+                    vec = vec << 1
+                if j == '1':
+                    vec = (vec << 1) | 1 
+            filect.write((vec).to_bytes(1, byteorder = 'little'))
 
 def ini():
     file = open("text.txt", "r")
@@ -116,9 +132,8 @@ def main():
     tre = tre[0]
     tre.left.Num(0)
     tre.right.Num(1)
-    tre.encode()
     tre.PrintTree()
-    
+    tre.encode()
 
 if __name__ == "__main__":
     	main()
