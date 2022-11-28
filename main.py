@@ -54,7 +54,7 @@ class tree:
                 code = self.right.find(char)
         return code
 
-    def encode(self):
+    def encode(self, massiv):
         filep = open("text.txt", "r")
         plain = filep.read()
         plain = list(plain)
@@ -68,6 +68,13 @@ class tree:
         pad = "0"*pad
         plain = pad+plain
         filect = open("encoded", "wb")
+        stroka = ""
+        for i in range(len(massiv)):
+            for j in range(2):
+                stroka+=str(massiv[i][j])
+        stroka += "\n"
+        stroka = bytes(stroka, 'utf-8')
+        filect.write(stroka)
         for i in range(int(len(plain)/8)):
             a = plain[i*8:i*8+8]
             vec = int(a[0])
@@ -78,6 +85,8 @@ class tree:
                 if j == '1':
                     vec = (vec << 1) | 1 
             filect.write((vec).to_bytes(1, byteorder = 'little'))
+                
+
 
 def ini():
     file = open("text.txt", "r")
@@ -126,14 +135,11 @@ def MasToTree(count):
 
 def main():
     count = ini()
-    print(count)
     tre = MasToTree(count)
-    print(f"len = {len(tre)}")
     tre = tre[0]
     tre.left.Num(0)
     tre.right.Num(1)
-    tre.PrintTree()
-    tre.encode()
+    tre.encode(count)
 
 if __name__ == "__main__":
     	main()
