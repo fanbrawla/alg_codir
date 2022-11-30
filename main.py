@@ -17,7 +17,6 @@ class tree:
         if self.code is None:
             print(self.data, self.name, self.code, self.potomok)
         else:
-            #self.code = bin(self.code).replace("0b", "").zfill(self.potomok)
             print(self.data, self.name, self.code, self.potomok)
         if self.left:
             self.left.PrintTree()
@@ -71,8 +70,9 @@ class tree:
         stroka = ""
         for i in range(len(massiv)):
             for j in range(2):
-                stroka+=str(massiv[i][j])
-        stroka += "\n"
+                stroka += str(massiv[i][j])
+                stroka += "-!"
+        stroka += " \n"
         stroka = bytes(stroka, 'utf-8')
         filect.write(stroka)
         for i in range(int(len(plain)/8)):
@@ -133,6 +133,33 @@ def MasToTree(count):
             del tr[r]
     return tr
 
+def decode(f):
+    filenc = open(f"{f}", "rb")
+    massiv = []
+    string = b""
+    sim = filenc.read(1)
+    while sim != b" \n":
+        string+=sim
+        if sim in b" \n":
+            tmp =filenc.read(1)
+            string += tmp
+            sim += tmp
+        if sim not in b" \n":
+            sim = filenc.read(1)
+    string = string.decode()
+    string = string.replace(" \n", "")
+    string = string.split("-!")
+    massiv = []
+    for i in range(0, len(string)-1, 2):
+        podmas = []
+        podmas.append(string[i])
+        podmas.append(int(string[i+1]))
+        massiv.append(podmas)
+    tre = MasToTree(massiv)
+    tre = tre[0]
+    tre.left.Num(0)
+    tre.right.Num(1)
+
 def main():
     count = ini()
     tre = MasToTree(count)
@@ -140,6 +167,8 @@ def main():
     tre.left.Num(0)
     tre.right.Num(1)
     tre.encode(count)
+    f = "encoded"
+    decode(f)
 
 if __name__ == "__main__":
     	main()
