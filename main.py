@@ -159,6 +159,25 @@ def decode(f):
     tre = tre[0]
     tre.left.Num(0)
     tre.right.Num(1)
+    tre.PrintTree()
+    codes = []
+    for i in range(len(massiv)):
+        tmp = []
+        tmp.append(massiv[i][0])
+        tmp.append(tre.find(massiv[i][0]))
+        codes.append(tmp)
+    encoded_text = filenc.read()
+    encoded_text = bin(int(encoded_text.hex(), 16))[2:]
+    rev_text = []
+    while encoded_text != "":
+        for i in codes:
+            if i[1] == encoded_text[-len(i[1]):]:
+                encoded_text = encoded_text[:-len(i[1])]
+                rev_text.append(i[0])
+    print(rev_text)
+    rev_text.reverse()
+    text = rev_text
+    print(text)
 
 def main():
     count = ini()
