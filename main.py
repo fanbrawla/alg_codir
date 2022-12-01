@@ -63,8 +63,8 @@ class tree:
             plain[i] = code
         plain = ''.join(plain)
         n = len(plain)
-        pad = (8-n)%8
-        pad = "0"*pad
+        num_pad = (8-n)%8
+        pad = "0"*num_pad
         plain = pad+plain
         filect = open("encoded", "wb")
         stroka = ""
@@ -72,6 +72,8 @@ class tree:
             for j in range(2):
                 stroka += str(massiv[i][j])
                 stroka += "-!"
+        stroka += str(len(plain)) + "-!"
+        stroka += str(num_pad)
         stroka += " \n"
         stroka = bytes(stroka, 'utf-8')
         filect.write(stroka)
@@ -149,6 +151,10 @@ def decode(f):
     string = string.decode()
     string = string.replace(" \n", "")
     string = string.split("-!")
+    num_pad = int(string[-1])
+    string = string[:-1]
+    lenght = int(string[-1])
+    string = string[:-1]
     massiv = []
     for i in range(0, len(string)-1, 2):
         podmas = []
@@ -159,7 +165,6 @@ def decode(f):
     tre = tre[0]
     tre.left.Num(0)
     tre.right.Num(1)
-    tre.PrintTree()
     codes = []
     for i in range(len(massiv)):
         tmp = []
@@ -168,16 +173,16 @@ def decode(f):
         codes.append(tmp)
     encoded_text = filenc.read()
     encoded_text = bin(int(encoded_text.hex(), 16))[2:]
-    rev_text = []
+    encoded_text = encoded_text.zfill(lenght)
+    encoded_text = encoded_text[num_pad:]
+    plain_text = ""
     while encoded_text != "":
         for i in codes:
-            if i[1] == encoded_text[-len(i[1]):]:
-                encoded_text = encoded_text[:-len(i[1])]
-                rev_text.append(i[0])
-    print(rev_text)
-    rev_text.reverse()
-    text = rev_text
-    print(text)
+            if i[1] == encoded_text[:len(i[1])]:
+                encoded_text = encoded_text[len(i[1]):]
+                plain_text += i[0]
+    filept = open("decoded", "w")
+    filept.write(plain_text+"\n")
 
 def main():
     count = ini()
