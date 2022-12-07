@@ -5,7 +5,7 @@ class tree:
         self.right = None
         self.data = data
         self.code = None
-        self.potomok = None
+        self.child = None
 
     def add(self, tr):
         new = tree()
@@ -15,9 +15,9 @@ class tree:
 
     def PrintTree(self):
         if self.code is None:
-            print(self.data, self.name, self.code, self.potomok)
+            print(self.data, self.name, self.code, self.child)
         else:
-            print(self.data, self.name, self.code, self.potomok)
+            print(self.data, self.name, self.code, self.child)
         if self.left:
             self.left.PrintTree()
         if self.right:
@@ -31,16 +31,16 @@ class tree:
             cost = self.right.Cost(cost)
         return cost
     
-    def Num(self, code = 1, potomok = 1):
-        self.code = bin(code).replace("0b", "").zfill(potomok)
-        self.potomok = potomok
-        potomok += 1
+    def Num(self, code = 1, child = 1):
+        self.code = bin(code).replace("0b", "").zfill(child)
+        self.child = child
+        child += 1
         if self.left:
             code0 = code << 1
-            self.left.Num(code0, potomok)
+            self.left.Num(code0, child)
         if self.right:
             code1 = (code << 1) | 1
-            self.right.Num(code1, potomok)
+            self.right.Num(code1, child)
 
     def find(self, char, code = None):
         if char == self.name:
@@ -53,30 +53,26 @@ class tree:
                 code = self.right.find(char)
         return code
 
-    def encode(self, massiv):
-        filep = open("text.txt", "r")
+    def encode(self, massiv, name):
+        filep = open(f"{name}", "rb")
         plain = filep.read()
         plain = list(plain)
-        del plain[len(plain)-1]
         for i in range(len(plain)):
-            code = self.find(plain[i])
+            code = self.find(chr(plain[i]))
             plain[i] = code
         plain = ''.join(plain)
         n = len(plain)
         num_pad = (8-n)%8
         pad = "0"*num_pad
         plain = pad+plain
-        filect = open("encoded", "wb")
-        stroka = ""
+        filect = open(f"{name}_encoded", "wb")
+        string = b""
+        filect.write(len(massiv).to_bytes(1, byteorder = "little"))
         for i in range(len(massiv)):
-            for j in range(2):
-                stroka += str(massiv[i][j])
-                stroka += "-!"
-        stroka += str(len(plain)) + "-!"
-        stroka += str(num_pad)
-        stroka += " \n"
-        stroka = bytes(stroka, 'utf-8')
-        filect.write(stroka)
+            string += ord(massiv[i][0]).to_bytes(1, byteorder = "little")
+            string += massiv[i][1].to_bytes(2, byteorder = "little")
+        string += num_pad.to_bytes(1, byteorder = "little")
+        filect.write(string)
         for i in range(int(len(plain)/8)):
             a = plain[i*8:i*8+8]
             vec = int(a[0])
@@ -87,18 +83,16 @@ class tree:
                 if j == '1':
                     vec = (vec << 1) | 1 
             filect.write((vec).to_bytes(1, byteorder = 'little'))
+        filect.close()
                 
-
-
-def ini():
-    file = open("text.txt", "r")
+def counter(name):
+    file = open(f"{name}", "rb")
     number = [0] * 256
     for i in range(256):
         number[i] = [chr(i), 0]
     f = file.read()
     for i in f:
-        number[ord(i)][1] += 1
-    j = 0
+        number[i][1] += 1
     number[ord("\n")][1]-=1
     count = []
     for i in range(0, 256):
@@ -108,7 +102,6 @@ def ini():
 
 def MasToTree(count):
     tr = []
-    haftr = []
     for i in range(len(count)):
         a = tree(count[i][1], count[i][0])
         tr.append(a)
@@ -135,64 +128,61 @@ def MasToTree(count):
             del tr[r]
     return tr
 
-def decode(f):
-    filenc = open(f"{f}", "rb")
+def decode(name):
+    filenc = open(f"{name}", "rb")
     massiv = []
-    string = b""
-    sim = filenc.read(1)
-    while sim != b" \n":
-        string+=sim
-        if sim in b" \n":
-            tmp =filenc.read(1)
-            string += tmp
-            sim += tmp
-        if sim not in b" \n":
-            sim = filenc.read(1)
-    string = string.decode()
-    string = string.replace(" \n", "")
-    string = string.split("-!")
-    num_pad = int(string[-1])
-    string = string[:-1]
-    lenght = int(string[-1])
-    string = string[:-1]
-    massiv = []
-    for i in range(0, len(string)-1, 2):
-        podmas = []
-        podmas.append(string[i])
-        podmas.append(int(string[i+1]))
-        massiv.append(podmas)
+    len_mas = filenc.read(1)
+    len_mas = int.from_bytes(len_mas, byteorder = "little")
+    for i in range(len_mas):
+        subarray = []
+        word = filenc.read(1)
+        amount = filenc.read(2)
+        amount = int.from_bytes(amount, byteorder= "little")
+        subarray.append(word)
+        subarray.append(amount)
+        massiv.append(subarray)
     tre = MasToTree(massiv)
     tre = tre[0]
     tre.left.Num(0)
     tre.right.Num(1)
+    num_pad = filenc.read(1)
+    num_pad = int.from_bytes(num_pad, byteorder= "little")
     codes = []
-    for i in range(len(massiv)):
+    for i in range(len_mas):
         tmp = []
         tmp.append(massiv[i][0])
         tmp.append(tre.find(massiv[i][0]))
         codes.append(tmp)
     encoded_text = filenc.read()
     encoded_text = bin(int(encoded_text.hex(), 16))[2:]
-    encoded_text = encoded_text.zfill(lenght)
+    encoded_text = (-(len(encoded_text))%8)*"0"+encoded_text
     encoded_text = encoded_text[num_pad:]
-    plain_text = ""
+    plain_text = []
     while encoded_text != "":
         for i in codes:
             if i[1] == encoded_text[:len(i[1])]:
                 encoded_text = encoded_text[len(i[1]):]
-                plain_text += i[0]
-    filept = open("decoded", "w")
-    filept.write(plain_text+"\n")
+                plain_text.append(ord(i[0]))
+    filept = open(f"{name}_decoded", "wb")
+    for i in plain_text:
+        filept.write(i.to_bytes(1, byteorder="little"))
+    filept.close()
+
+def start(choise):
+    name = input("Введите название файла\n")
+    if choise == "1":
+        count = counter(name)
+        tre = MasToTree(count)
+        tre = tre[0]
+        tre.left.Num(0)
+        tre.right.Num(1)
+        tre.encode(count, name)
+    if choise == "2":
+        decode(name)
 
 def main():
-    count = ini()
-    tre = MasToTree(count)
-    tre = tre[0]
-    tre.left.Num(0)
-    tre.right.Num(1)
-    tre.encode(count)
-    f = "encoded"
-    decode(f)
+    choise = input("Выберите режим:\n1)Кодировка\n2)Раскодировка\n")
+    start(choise)
 
 if __name__ == "__main__":
     	main()
