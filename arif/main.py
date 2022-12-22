@@ -1,4 +1,3 @@
-
 global write_bit
 global bit_len
 write_bit = 0
@@ -29,10 +28,9 @@ def bitPlusFollow(bit, bittofollow, outputfile):
     for _ in range(bittofollow):
         outPutBit(~bit, outputfile)
 
-def enc():
+def compress(fname):
     global write_bit
     global bit_len
-    fname = input("Введите название файла для кодирования:")
     with open(f'{fname}', 'r') as fp:
         sum_wlist = 0
         chunk = fp.read(1)
@@ -50,7 +48,7 @@ def enc():
     for i in sorted_wlist:
         wlist_mas.append(sorted_wlist[i] + wlist_mas[-1])
 
-    f = open(f"{fname}.enc", "wb+")
+    f = open(f"{fname}.compressed", "wb+")
     print(len(sorted_wlist))
     f.write(len(sorted_wlist).to_bytes(1, "little"))
     for i in sorted_wlist:
@@ -126,8 +124,33 @@ def enc():
         f.write(write_bit.to_bytes(1, "little"))
     f.close()
 
+def decompress(fname):
+    with open(f"{fname}", "rb") as file_in:
+        chunk = ord(file_in.read(1))
+        print(chunk)
+        rasp_wlist = {}
+        for i in range(chunk):
+            key_hat = file_in.read(1).decode('ascii')
+            #print(key_hat)
+            val_hat = int.from_bytes(file_in.read(4), "little")
+            #print(val_hat)
+            rasp_wlist[key_hat] = val_hat
+        print(rasp_wlist)
+        #делаем алгоритмический массив
+        wlist_mas = [0, 1]
+        for i in rasp_wlist:
+            wlist_mas.append(rasp_wlist[i] + wlist_mas[-1])
+        print(wlist_mas)
+
 def main():
-    enc()
+    choise = input("1 - сжать, 2 - расжать:\n")
+    fname = input("Введите название файла ")
+    if choise == "1":
+        compress(fname)
+    elif choise == "2":
+        decompress(fname)
+    else:
+        print("Неправильный ввод")
 
 if __name__ == "__main__":
     	main()
