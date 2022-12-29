@@ -8,17 +8,20 @@ def get_index(word, wlist):
 def get_code(up, down):
     if up == down:
         code_txt = str(up)
-        return int(code_txt[2:])
+        return code_txt[2:]
     s_up = str(up)
     s_down = str(down)
     code_txt = ""
-
-    for i in range(len(up)):
+    i = 0
+    while(i < len(s_up)):
         if s_up[i] != s_down[i]:
-            code_txt += str(int(s_up[i])+int(s_down[i])//2)
+            if (int(s_up[i])-1) > int(s_down[i]):
+                code_txt += str(int(s_up[i])-1)
+                i = len(s_up)
         else:
             code_txt += s_up[i]
-    return int(code_txt[2:])
+        i+=1
+    return code_txt[2:]
     
 
 def compress():
@@ -51,19 +54,55 @@ def compress():
             for i in range(index):
                 down = down + diff * probability[i]
             up = down + diff * probability[index]
-        
         code_txt = get_code(up, down)
         plain_file.close()
     with open(f"{file_name}.compressed", "wb") as com_file:
+        length = len(wlist)
+        com_file.write(length.to_bytes(2, "little"))
         for word in wlist:
             com_file.write(word.encode())
             com_file.write(wlist[word].to_bytes(2, "little"))
-        com_file.write(b"\n")
-        com_file.write(code_txt.to_bytes((code_txt.bit_length()+7)//8, "little"))
-
+        com_file.write(code_txt.encode())
 
 def decompress():
     file_name = input("Введите название файла: ")
+    with open(f"{file_name}", "rb") as com_file:
+        length = int.from_bytes(com_file.read(2), "little")
+        wlist = {}
+        for i in range(length):
+            word = com_file.read(1).decode()
+            amount = int.from_bytes(com_file.read(2), "little")
+            wlist.update({word:amount})
+        amount_word = 0
+        for word in wlist:
+            amount_word += wlist[word]
+        probability = []
+        for word in wlist:
+            probability.append(wlist[word]/amount_word)
+        com_txt = "0."+com_file.read().decode()
+        com_txt = float(com_txt)
+        txt_len = 0
+        p_txt = ""
+        word_list = list(wlist.keys())
+        up = 1.0
+        down = 0.0
+        while(txt_len < amount_word):
+            diff = up - down
+            for i in range(len(wlist)):
+                up = down + diff*probability[i]
+                if down < com_txt < up:
+                    break
+                else:
+                    down = up
+            
+            txt_len += 1
+            p_txt += word_list[i]
+
+        com_file.close()
+    with open (f"{file_name}.decompress", "w") as dec_file:
+        dec_file.write(p_txt)
+        dec_file.close()
+
 
 def main():
     choise = input("Выберите режим: 1 - сжать, 2 - расжать\n")
